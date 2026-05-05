@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCET — Result Portal | B.Tech CSE AI &amp; ML Sem V</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <!-- ═══ HEADER ═══ -->
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-badge">SC<br>ET</div>
+        <div>
+          <div class="logo-text">SCET Result Portal</div>
+          <div class="logo-sub">B.Tech CSE AI &amp; ML · Semester V · Winter 2025</div>
+        </div>
+      </div>
+      <nav>
+        <button class="active" onclick="showPage('results',this)">📊 Results</button>
+        <button onclick="showPage('analysis',this)">📈 Analysis</button>
+        <button onclick="showPage('downloads',this)">⬇️ Downloads</button>
+      </nav>
+      <div class="header-actions">
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('pdfUpload').click()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Upload PDF
+        </button>
+        <input type="file" id="pdfUpload" accept=".pdf" style="display:none" onchange="handlePDFUpload(event)">
+        <button class="btn btn-accent btn-sm" onclick="showPage('downloads',null);scrollDownloads()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Export All
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ HERO BANNER ═══ -->
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <h1>Semester V Results<br><span>Winter 2025</span></h1>
+        <p>Dr. Babasaheb Ambedkar Technological University · Shreeyash College of Engineering &amp; Technology,
+          Chhatrapati Sambhajinagar</p>
+        <div class="hero-tags">
+          <span class="tag">B.Tech CSE (AI &amp; ML)</span>
+          <span class="tag">Regular Batch</span>
+          <span class="tag">Institute Code: 02112</span>
+          <span class="tag">Declared: 20 Apr 2026</span>
+        </div>
+      </div>
+      <div class="stats-row" id="heroStats"></div>
+    </div>
+  </div>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="main">
+
+    <!-- ─── RESULTS PAGE ─── -->
+    <div class="page active" id="page-results">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input type="text" id="searchInput" placeholder="Search by name or seat number…" oninput="filterTable()" />
+        </div>
+        <select class="filter-select" id="resultFilter" onchange="filterTable()">
+          <option value="">All Results</option>
+          <option value="PASS">Pass Only</option>
+          <option value="FAIL">Fail Only</option>
+        </select>
+        <select class="filter-select" id="sgpaFilter" onchange="filterTable()">
+          <option value="">All SGPA</option>
+          <option value="distinction">Distinction (≥8.0)</option>
+          <option value="first">First Class (6.5–8.0)</option>
+          <option value="second">Second Class (&lt;6.5)</option>
+        </select>
+        <button class="btn btn-teal btn-sm" onclick="exportCurrentView()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Export View
+        </button>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Student Results</h2>
+          <span class="badge" id="tableCount">38 students</span>
+        </div>
+        <div class="table-wrap">
+          <table id="resultsTable">
+            <thead id="tableHead">
+              <tr>
+                <th>#</th>
+                <th>Seat No.</th>
+                <th>Student Name</th>
+                <th>Result</th>
+                <th>Total /700</th>
+                <th>SGPA</th>
+                <!-- Subject columns will be dynamically generated -->
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="paginationEl"></div>
+      </div>
+    </div>
+
+    <!-- ─── ANALYSIS PAGE ─── -->
+    <div class="page" id="page-analysis">
+      <div class="analysis-grid">
+
+        <div class="analysis-card">
+          <div class="ac-header">
+            <div class="icon">📋</div>
+            <h3>RESULT SUMMARY</h3>
+          </div>
+          <div class="ac-body">
+            <table class="summary-table" id="summaryTable"></table>
+          </div>
+        </div>
+
+        <div class="analysis-card">
+          <div class="ac-header">
+            <div class="icon">📊</div>
+            <h3>PASS / FAIL BREAKDOWN</h3>
+          </div>
+          <div class="ac-body">
+            <div id="passfailBars" style="margin-bottom:20px"></div>
+            <div id="sgpaChart"></div>
+          </div>
+        </div>
+
+        <div class="analysis-card full" id="card-fail-dist">
+          <div class="ac-header">
+            <div class="icon">⚠️</div>
+            <h3>FAILURE DISTRIBUTION — No. of Subjects Failed</h3>
+          </div>
+          <div class="ac-body">
+            <div class="fail-grid" id="failGrid"></div>
+          </div>
+        </div>
+
+        <div class="analysis-card full">
+          <div class="ac-header">
+            <div class="icon">📊</div>
+            <h3>SUBJECT-WISE PASSING PERCENTAGE</h3>
+          </div>
+          <div class="ac-body" style="overflow-x:auto">
+            <div id="subjectPassChart"></div>
+          </div>
+        </div>
+
+        <div class="analysis-card full">
+          <div class="ac-header">
+            <div class="icon">📚</div>
+            <h3>SUBJECT WISE GRADE DISTRIBUTION</h3>
+          </div>
+          <div class="ac-body" style="overflow-x:auto">
+            <table class="sub-table" id="subjectTable"></table>
+          </div>
+        </div>
+
+        <div class="analysis-card">
+          <div class="ac-header">
+            <div class="icon">🏆</div>
+            <h3>CLASS TOPPERS</h3>
+          </div>
+          <div class="ac-body" id="classToppers"></div>
+        </div>
+
+        <div class="analysis-card">
+          <div class="ac-header">
+            <div class="icon">⭐</div>
+            <h3>SUBJECT TOPPERS</h3>
+          </div>
+          <div class="ac-body" id="subjectToppers"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── DOWNLOADS PAGE ─── -->
+    <div class="page" id="page-downloads">
+      <div style="margin-bottom:24px">
+        <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px">Download Reports</h2>
+        <p style="color:var(--muted);font-size:14px">Download student results and result analysis in multiple formats.
+        </p>
+      </div>
+      <div class="download-grid" id="downloadGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- ═══ TOAST ═══ -->
+  <div class="toast" id="toast">
+    <div class="toast-dot"></div>
+    <span id="toastMsg">File downloaded successfully!</span>
+  </div>
+
+  <!-- ═══ SCRIPTS ═══ -->
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Data: constants & student records -->
+  <script src="js/data.js"></script>
+  <!-- PDF Parser: client-side PDF parsing -->
+  <script src="js/pdf-parser.js"></script>
+  <!-- Render: hero, table, analysis, downloads -->
+  <script src="js/render.js"></script>
+  <!-- Filters: search, filter, pagination -->
+  <script src="js/filters.js"></script>
+  <!-- Exports: xlsx, csv, json download functions -->
+  <script src="js/exports.js"></script>
+  <!-- App: navigation, toast, init -->
+  <script src="js/app.js"></script>
+
+</body>
+
+</html>

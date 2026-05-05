@@ -106,6 +106,7 @@ async function handlePDFUpload(event) {
       short: SUB_SHORT,
       full: SUB_FULL
     }));
+    localStorage.setItem('examInfo', JSON.stringify(EXAM_INFO));
 
   } catch (error) {
     console.error('PDF upload error:', error);
@@ -137,6 +138,14 @@ if (savedData) {
       SUBJECTS.push(...subjectData.codes);
       Object.assign(SUB_SHORT, subjectData.short);
       Object.assign(SUB_FULL, subjectData.full);
+    }
+
+    const savedExamInfo = localStorage.getItem('examInfo');
+    if (savedExamInfo) {
+      const ei = JSON.parse(savedExamInfo);
+      EXAM_INFO.semester = ei.semester || '';
+      EXAM_INFO.session = ei.session || '';
+      EXAM_INFO.batchType = ei.batchType || 'Regular';
     }
 
     const ts = localStorage.getItem('studentDataTimestamp');

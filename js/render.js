@@ -23,6 +23,25 @@ const safePercent = (num, denom) => denom > 0 ? (num / denom * 100) : 0;
 // ─── Hero Stats ───
 function renderHeroStats() {
   const { total, passed, failed } = getStats();
+
+  // Update hero title dynamically from exam info
+  const titleEl = document.getElementById('heroTitle');
+  const sessionEl = document.getElementById('heroSession');
+  const batchEl = document.getElementById('heroTagBatch');
+
+  if (titleEl && sessionEl) {
+    if (EXAM_INFO.semester) {
+      titleEl.childNodes[0].textContent = `Semester ${EXAM_INFO.semester} Results`;
+      sessionEl.textContent = EXAM_INFO.session || 'Results';
+    } else {
+      titleEl.childNodes[0].textContent = 'Results';
+      sessionEl.textContent = 'Upload a PDF';
+    }
+  }
+  if (batchEl && EXAM_INFO.batchType) {
+    batchEl.textContent = EXAM_INFO.batchType + ' Batch';
+  }
+
   const el = document.getElementById('heroStats');
   const items = [
     { num: total, lbl: "Total Students", cls: "" },

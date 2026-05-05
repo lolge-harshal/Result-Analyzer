@@ -71,6 +71,13 @@ function updateGlobalSubjects(data) {
   Object.keys(SUB_FULL).forEach(k => delete SUB_FULL[k]);
   Object.assign(SUB_FULL, data.subjectNames);
 
+  // Update exam info
+  if (data.examInfo) {
+    EXAM_INFO.semester = data.examInfo.semester || '';
+    EXAM_INFO.session = data.examInfo.session || '';
+    EXAM_INFO.batchType = data.examInfo.batchType || 'Regular';
+  }
+
   console.log('✅ Global subjects updated:', SUBJECTS);
 }
 

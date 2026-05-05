@@ -211,11 +211,20 @@ def parse_pdf_with_gemini(pdf_file):
         print(f"  Students : {len(all_students)}")
         print(f"  Subjects : {len(subjects)}")
 
+        # Extract exam info from first page text
+        full_text = "\n\n".join(t for _, t in all_pages[:3])
+        sem_num, session, batch_type = extract_exam_info(full_text)
+
         return {
             "subjects": subjects,
             "subjectNames": subject_names,
             "subjectShort": subject_short,
-            "students": all_students
+            "students": all_students,
+            "examInfo": {
+                "semester": sem_num,
+                "session": session,
+                "batchType": batch_type
+            }
         }
 
     finally:
@@ -252,7 +261,39 @@ def extract_lines_from_words(page):
     return lines
 
 
+def extract_exam_info(full_text):
+    """
+    Extract semester number and exam session from the PDF header line.
+    e.g. "SEMESTER - 3 Winter 2025 ( Regular )" → ("3", "Winter 2025", "Regular")
+    """
+    m = re.search(
+        r'SEMESTER\s*[-–]\s*(\d+)\s+((?:Winter|Summer|Spring|Autumn)\s+\d{4})\s*\(\s*(Regular|Ex-Student[s]?|ATKT)\s*\)',
+        full_text, re.IGNORECASE
+    )
+    if m:
+        return m.group(1), m.group(2).strip(), m.group(3).strip()
+    # Fallback: just semester
+    m2 = re.search(r'SEMESTER\s*[-–]\s*(\d+)', full_text, re.IGNORECASE)
+    if m2:
+        return m2.group(1), '', 'Regular'
+    return '', '', 'Regular'
+
+
 def parse_subject_names(full_text):
+    """
+    Extract code->name from lines like:
+      25AF1000BS301 : ENGINEERING MATHEMATICS - III (Credit :3)
+    """
+    subjects = {}
+    pattern = re.compile(
+        r'([A-Z0-9]{5,})\s*:\s*([A-Z][A-Z0-9\s\-&/(),\u2013]+?)\s*\(Credit\s*:\s*[\d.]+\s*\)',
+        re.IGNORECASE
+    )
+    for m in pattern.finditer(full_text):
+        code = m.group(1).strip()
+        name = re.sub(r'\s+', ' ', m.group(2)).strip()
+        subjects[code] = name
+    return subjects
     """
     Extract code->name from lines like:
       25AF1000BS301 : ENGINEERING MATHEMATICS - III (Credit :3)
@@ -379,11 +420,12 @@ def parse_pdf_legacy(pdf_file):
 
     with pdfplumber.open(pdf_file) as pdf:
 
-        # Pass 1: extract subject full names from page 1 text
+        # Pass 1: extract subject full names and exam info from full text
         full_text = ""
         for page in pdf.pages:
             full_text += (page.extract_text() or "") + "\n"
         raw_names = parse_subject_names(full_text)
+        sem_num, session, batch_type = extract_exam_info(full_text)
 
         current_subjects = []   # persists across pages
 
@@ -545,7 +587,12 @@ def parse_pdf_legacy(pdf_file):
         'subjects': all_subjects_ordered,
         'subjectNames': subject_names,
         'subjectShort': subject_short,
-        'students': deduped
+        'students': deduped,
+        'examInfo': {
+            'semester': sem_num,
+            'session': session,
+            'batchType': batch_type
+        }
     }
 
 

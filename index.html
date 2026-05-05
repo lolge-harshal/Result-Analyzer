@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SCET — Result Portal | B.Tech CSE AI &amp; ML Sem V</title>
+  <title>SYCET — Result Portal</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap"
     rel="stylesheet" />
@@ -17,10 +17,10 @@
   <header>
     <div class="header-inner">
       <div class="logo">
-        <div class="logo-badge">SC<br>ET</div>
+        <img src="images/sycet-logo.png" alt="SYCET Logo" class="logo-img" />
         <div>
-          <div class="logo-text">SCET Result Portal</div>
-          <div class="logo-sub">B.Tech CSE AI &amp; ML · Semester V · Winter 2025</div>
+          <div class="logo-text">SYCET Result Portal</div>
+          <div class="logo-sub">Developed by AIML Department</div>
         </div>
       </div>
       <nav>
@@ -54,17 +54,21 @@
   <div class="hero">
     <div class="hero-inner">
       <div class="hero-left">
-        <h1>Semester V Results<br><span>Winter 2025</span></h1>
-        <p>Dr. Babasaheb Ambedkar Technological University · Shreeyash College of Engineering &amp; Technology,
-          Chhatrapati Sambhajinagar</p>
+        <h1 id="heroTitle">Results<br><span id="heroSession">Upload a PDF</span></h1>
+        <div class="hero-batu-row">
+          <img src="images/batu-logo.webp" alt="BATU Logo" class="batu-logo" />
+          <p>Dr. Babasaheb Ambedkar Technological University · Shreeyash College of Engineering &amp; Technology,
+            Chhatrapati Sambhajinagar</p>
+        </div>
         <div class="hero-tags">
-          <span class="tag">B.Tech CSE (AI &amp; ML)</span>
-          <span class="tag">Regular Batch</span>
+          <span class="tag" id="heroTagCourse">B.Tech CSE (AI &amp; ML)</span>
+          <span class="tag" id="heroTagBatch">Regular Batch</span>
           <span class="tag">Institute Code: 02112</span>
-          <span class="tag">Declared: 20 Apr 2026</span>
         </div>
       </div>
-      <div class="stats-row" id="heroStats"></div>
+      <div class="hero-right">
+        <div class="stats-row" id="heroStats"></div>
+      </div>
     </div>
   </div>
 

@@ -166,6 +166,15 @@
           <div class="ac-header">
             <div class="icon">📊</div>
             <h3>SUBJECT-WISE PASSING PERCENTAGE</h3>
+            <button class="btn btn-sm" id="downloadChartBtn" onclick="downloadChartImage()"
+              style="margin-left:auto;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Download PNG
+            </button>
           </div>
           <div class="ac-body" style="overflow-x:auto">
             <div id="subjectPassChart"></div>
@@ -222,6 +231,8 @@
   <!-- ═══ SCRIPTS ═══ -->
   <!-- SheetJS for Excel export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- html2canvas for chart image export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <!-- Data: constants & student records -->
   <script src="js/data.js"></script>
   <!-- PDF Parser: client-side PDF parsing -->

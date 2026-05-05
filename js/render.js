@@ -279,7 +279,12 @@ function renderAnalysis() {
     const passedSub = GRADE_ORDER.filter(g => g !== "FF")
       .reduce((a, g) => a + STUDENTS.filter(s => s.grades[sub] === g).length, 0);
     const pct = appeared > 0 ? parseFloat((passedSub / appeared * 100).toFixed(1)) : 0;
-    return { sub, label: SUB_SHORT[sub] || sub, full: SUB_FULL[sub] || sub, pct, passedSub, appeared };
+    // Use full name in title case for the bar label, fall back to short then code
+    const rawFull = SUB_FULL[sub] || SUB_SHORT[sub] || sub;
+    const label = rawFull.split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+    return { sub, label, full: rawFull, pct, passedSub, appeared };
   });
 
   const barColors = [

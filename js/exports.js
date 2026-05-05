@@ -193,3 +193,156 @@ function exportCurrentView() {
   XLSX.writeFile(wb, `SCET_Filtered_${Date.now()}.xlsx`);
   showToast(`Exported ${filteredStudents.length} students!`);
 }
+
+function downloadChartImage() {
+  const chartEl = document.getElementById('subjectPassChart');
+  if (!chartEl || !chartEl.querySelector('.subpass-chart-wrap')) {
+    showToast('❌ No chart to download — upload a PDF first');
+    return;
+  }
+
+  const btn = document.getElementById('downloadChartBtn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Generating…`;
+  btn.disabled = true;
+
+  try {
+    // ── Build data ──────────────────────────────────────────────────────────
+    const barColors = [
+      '#4A6CF7', '#3ABEF9', '#00C9A7', '#F5A623', '#E84855',
+      '#7B61FF', '#2CB67D', '#FF7A85', '#FFB347', '#4A90D9',
+      '#9B59B6', '#1ABC9C', '#E67E22', '#2ECC71', '#E74C3C'
+    ];
+
+    const data = SUBJECTS.map((sub, i) => {
+      const appeared = STUDENTS.filter(s => s.grades[sub] != null).length;
+      const passedSub = GRADE_ORDER.filter(g => g !== 'FF')
+        .reduce((a, g) => a + STUDENTS.filter(s => s.grades[sub] === g).length, 0);
+      const pct = appeared > 0 ? parseFloat((passedSub / appeared * 100).toFixed(1)) : 0;
+      const rawFull = SUB_FULL[sub] || SUB_SHORT[sub] || sub;
+      const label = rawFull.split(' ')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ');
+      return { label, pct, color: barColors[i % barColors.length] };
+    });
+
+    // ── Canvas dimensions ───────────────────────────────────────────────────
+    const scale = 2;                  // retina
+    const barW = 90;                 // bar column width px (logical)
+    const barGap = 16;
+    const padLeft = 64;                 // y-axis area
+    const padRight = 30;
+    const padTop = 70;                 // room for title + pct label
+    const padBottom = 90;                 // room for subject name labels
+    const chartH = 220;               // height of bar area
+    const labelLines = 3;                 // max lines for subject name
+
+    const totalW = padLeft + data.length * (barW + barGap) - barGap + padRight;
+    const totalH = padTop + chartH + padBottom;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = totalW * scale;
+    canvas.height = totalH * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    // ── Background ──────────────────────────────────────────────────────────
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, totalW, totalH);
+
+    // ── Header bar ──────────────────────────────────────────────────────────
+    ctx.fillStyle = '#0B1B3E';
+    ctx.fillRect(0, 0, totalW, 40);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 14px "Arial", sans-serif';
+    ctx.fillText('📊  SUBJECT-WISE PASSING PERCENTAGE', 16, 26);
+
+    // ── Y-axis grid lines & labels ──────────────────────────────────────────
+    const yTicks = [0, 20, 40, 60, 80, 100];
+    ctx.textAlign = 'right';
+    ctx.font = '11px "Arial", sans-serif';
+
+    yTicks.forEach(v => {
+      const y = padTop + chartH - (v / 100 * chartH);
+      // grid line
+      ctx.strokeStyle = '#E0E5F2';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(padLeft, y);
+      ctx.lineTo(totalW - padRight, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // label
+      ctx.fillStyle = '#6B7BA4';
+      ctx.fillText(v + '%', padLeft - 6, y + 4);
+    });
+
+    // ── Bars ────────────────────────────────────────────────────────────────
+    data.forEach((d, i) => {
+      const x = padLeft + i * (barW + barGap);
+      const barH = Math.max(3, d.pct / 100 * chartH);
+      const y = padTop + chartH - barH;
+
+      // bar
+      ctx.fillStyle = d.color;
+      // rounded top corners
+      const r = 5;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + barW - r, y);
+      ctx.quadraticCurveTo(x + barW, y, x + barW, y + r);
+      ctx.lineTo(x + barW, y + barH);
+      ctx.lineTo(x, y + barH);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.fill();
+
+      // percentage label above bar
+      const pctColor = d.pct < 50 ? '#E84855' : d.pct < 75 ? '#F5A623' : '#2CB67D';
+      ctx.fillStyle = pctColor;
+      ctx.font = 'bold 12px "Arial", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(d.pct + '%', x + barW / 2, y - 6);
+
+      // subject name below bar — wrap into multiple lines
+      ctx.fillStyle = '#0B1B3E';
+      ctx.font = '10px "Arial", sans-serif';
+      ctx.textAlign = 'center';
+      const words = d.label.split(' ');
+      const lines = [];
+      let cur = '';
+      words.forEach(w => {
+        const test = cur ? cur + ' ' + w : w;
+        if (ctx.measureText(test).width > barW + 10) {
+          if (cur) lines.push(cur);
+          cur = w;
+        } else {
+          cur = test;
+        }
+      });
+      if (cur) lines.push(cur);
+
+      const lineH = 13;
+      const labelY = padTop + chartH + 10;
+      lines.slice(0, labelLines).forEach((ln, li) => {
+        ctx.fillText(ln, x + barW / 2, labelY + li * lineH);
+      });
+    });
+
+    // ── Download ────────────────────────────────────────────────────────────
+    const link = document.createElement('a');
+    link.download = 'SCET_SubjectWise_PassPercentage.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('✅ Chart downloaded as PNG!');
+
+  } catch (err) {
+    console.error('Chart download error:', err);
+    showToast('❌ Failed to download chart');
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}

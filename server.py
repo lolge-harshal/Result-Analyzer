@@ -273,33 +273,45 @@ def parse_subject_names(full_text):
 
 def resolve_subject_names(column_codes, raw_names):
     """
-    Map truncated column codes (e.g. '25AF1000BS30') to full subject names.
-    Strategy: for each column code, find the raw_names key that starts with
-    that column code (the column code is a prefix of the full PDF code).
-    Falls back to the column code itself if no match found.
+    Map truncated column codes to full subject names.
+
+    The PDF header defines codes like:
+      25AF1000BS301, 25AF1000VE308A, 25AF1HAROEM05D, 25AF1UHVVE310
+    But the column headers use truncated versions:
+      25AF1000BS30,  25AF1000VE30,   25AF1HAROEM,    25AF1UHVVE31
+
+    Strategy: for each column code, find the raw_names entry whose key
+    shares the longest common prefix with the column code (min 8 chars).
     """
     resolved_names = {}
     resolved_short = {}
 
     for col_code in column_codes:
-        # Direct match first
+        # 1. Direct match
         if col_code in raw_names:
             resolved_names[col_code] = raw_names[col_code]
             resolved_short[col_code] = make_short_name(raw_names[col_code])
             continue
 
-        # Prefix match: find a raw code that starts with col_code
-        match = None
+        # 2. Best prefix match — find raw code with longest shared prefix
+        best_name = None
+        best_len = 0
         for raw_code, name in raw_names.items():
-            if raw_code.startswith(col_code):
-                match = name
-                break
+            # Compute common prefix length
+            common = 0
+            for a, b in zip(col_code, raw_code):
+                if a == b:
+                    common += 1
+                else:
+                    break
+            if common >= 8 and common > best_len:
+                best_len = common
+                best_name = name
 
-        if match:
-            resolved_names[col_code] = match
-            resolved_short[col_code] = make_short_name(match)
+        if best_name:
+            resolved_names[col_code] = best_name
+            resolved_short[col_code] = make_short_name(best_name)
         else:
-            # No match — keep the code as-is
             resolved_names[col_code] = col_code
             resolved_short[col_code] = col_code[:15]
 
